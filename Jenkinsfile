@@ -23,7 +23,7 @@ pipeline {
         stage('Verify Build Output') {
             steps {
                 bat 'dir dist'
-                bat 'dir dist\\angular-jenkin'
+                bat 'dir dist\\country-view'
             }
         }
 
@@ -32,7 +32,7 @@ pipeline {
                 script {
                     // Package the build output as a WAR file using PowerShell
                     powershell '''
-                    $distPath = "dist\\angular-jenkin"
+                    $distPath = "dist\\country-view"
                     $warPath = "dist\\war"
                     
                     # Ensure the war directory exists
@@ -40,14 +40,14 @@ pipeline {
                         New-Item -ItemType Directory -Path $warPath
                     }
                     
-                    # Copy files from dist\\angular-jenkin to dist\\war
+                    # Copy files from dist\\country-view to dist\\war
                     Copy-Item -Path "$distPath\\*" -Destination $warPath -Recurse -Force
                     
                     # Change to the war directory
                     Set-Location -Path $warPath
                     
                     # Create the WAR file
-                    & jar -cvf angular-jenkins.war *
+                    & jar -cvf country-view.war *
                     '''
                 }
             }
@@ -57,7 +57,7 @@ pipeline {
                 script {
                     // Define variables
                     def tomcatPath = "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps"
-                    def warFile = "dist\\war\\angular-jenkins.war"
+                    def warFile = "dist\\war\\country-view.war"
 
                     // Check if Tomcat is already stopped
                     def tomcatStatus = bat(script: 'sc query Tomcat10 | findstr /C:"STOPPED"', returnStatus: true)
@@ -70,7 +70,7 @@ pipeline {
                     }
 
                     // Copy WAR file to Tomcat webapps directory
-                    def copyCommand = "copy \"${warFile}\" \"${tomcatPath}\\angular-jenkins.war\""
+                    def copyCommand = "copy \"${warFile}\" \"${tomcatPath}\\country-view.war\""
                     echo "Executing: ${copyCommand}"
                     bat copyCommand
 
