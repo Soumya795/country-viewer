@@ -2,15 +2,22 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS'
-        jdk 'JAVA'
+        nodejs 'NodeJS' // Make sure this matches the configured NodeJS tool name in Jenkins
+        jdk 'JAVA'      // Make sure this matches the configured JDK tool name in Jenkins
     }
 
     stages {
+        stage('Verify JDK Installation') {
+            steps {
+                // Verify if jar command is available
+                bat 'jar --version'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
-                bat 'npm audit fix || exit 0' 
+                bat 'npm audit fix || exit 0'
             }
         }
 
@@ -52,21 +59,22 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy') {
             steps {
                 script {
                     // Define variables
-                    def tomcatPath = "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps"
+                    def tomcatPath = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps"
                     def warFile = "dist\\war\\country-view.war"
 
                     // Check if Tomcat is already stopped
-                    def tomcatStatus = bat(script: 'sc query Tomcat10 | findstr /C:"STOPPED"', returnStatus: true)
+                    def tomcatStatus = bat(script: 'sc query Tomcat9 | findstr /C:"STOPPED"', returnStatus: true)
             
                     if (tomcatStatus == 0) {
                         echo "Tomcat is already stopped."
                     } else {
-                    // Stop Tomcat
-                        bat "net stop Tomcat10"
+                        // Stop Tomcat
+                        bat "net stop Tomcat9"
                     }
 
                     // Copy WAR file to Tomcat webapps directory
@@ -75,15 +83,8 @@ pipeline {
                     bat copyCommand
 
                     // Start Tomcat
-                    bat "net start Tomcat10"
+                    bat "net start Tomcat9"
                 }
-            }
-        }
-
-        stage('Verify JDK Installation') {
-            steps {
-                // Verify if jar command is available
-                bat 'jar --version'
             }
         }
     }
