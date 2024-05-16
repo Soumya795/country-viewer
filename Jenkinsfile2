@@ -9,8 +9,8 @@ pipeline {
 
     environment {
         TOMCAT_USER = credentials('tomcat')
-        TOMCAT_HOST = 'your.tomcat.server'
-        TOMCAT_PATH = '/opt/tomcat/latest/webapps'
+        TOMCAT_HOST = '20.36.135.22'
+        TOMCAT_PATH = '/opt/tomcat/webapps'
         WAR_PATH = 'dist/war/country-view.war'
     }
 
