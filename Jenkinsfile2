@@ -74,19 +74,5 @@ pipeline {
                 }
             }
         }
-
-        stage('Verify JDK Installation') {
-            steps {
-                // Verify if jar command is available
-                sh 'sudo jar --version'
-            }
-        }
-
-        stage('Verify Maven Installation') {
-            steps {
-                // Verify if Maven is available
-                sh 'sudo mvn --version'
-            }
-        }
     }
 }
