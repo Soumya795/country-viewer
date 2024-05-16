@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         nodejs 'NodeJS'
-        jdk 'JAVA' // Ensure 'JAVA' corresponds to the installed JDK in Jenkins
+        jdk 'JAVA'
     }
 
     environment {
