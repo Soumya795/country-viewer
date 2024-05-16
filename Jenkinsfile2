@@ -12,8 +12,16 @@ pipeline {
         TOMCAT_PATH = '/opt/tomcat/webapps'
         WAR_PATH = 'dist/war/country-view.war'
     }
-
     stages {
+        stage('Check JAR Command') {
+            steps {
+                // Debug statement to check if the jar command is working
+                sh 'echo "Checking JAR command"'
+                sh 'which jar || echo "jar command not found"'
+                sh 'jar --version || echo "jar command failed"'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
