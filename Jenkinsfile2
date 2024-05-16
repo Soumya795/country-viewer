@@ -16,9 +16,9 @@ pipeline {
         stage('Check JAR Command') {
             steps {
                 // Debug statement to check if the jar command is working
-                sh 'echo "Checking JAR command"'
-                sh 'which jar || echo "jar command not found"'
-                sh 'jar --version || echo "jar command failed"'
+                sh 'sudo echo "Checking JAR command"'
+                sh 'sudo which jar || echo "jar command not found"'
+                sh 'sudo jar --version || echo "jar command failed"'
             }
         }
 
@@ -59,7 +59,7 @@ pipeline {
                     cd $warPath
                     
                     # Create the WAR file
-                    jar -cvf country-view.war *
+                    sudo jar -cvf country-view.war *
                     '''
                 }
             }
