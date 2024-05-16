@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'NodeJS'
+        jdk 'JAVA' // Ensure 'JAVA' corresponds to the installed JDK in Jenkins
+        maven 'Maven' // Ensure 'Maven' corresponds to the installed Maven in Jenkins
+    }
+
+    environment {
+        TOMCAT_USER = credentials('tomcat')
+        TOMCAT_HOST = 'your.tomcat.server'
+        TOMCAT_PATH = '/opt/tomcat/latest/webapps'
+        WAR_PATH = 'dist/war/country-view.war'
+    }
+
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+                sh 'npm audit fix || exit 0' 
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'npm run build -- --configuration production'
+            }
+        }
+
+        stage('Verify Build Output') {
+            steps {
+                sh 'ls -la dist'
+                sh 'ls -la dist/country-view'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                script {
+                    sh '''
+                    distPath="dist/country-view"
+                    warPath="dist/war"
+                    
+                    # Ensure the war directory exists
+                    mkdir -p $warPath
+                    
+                    # Copy files from dist/country-view to dist/war
+                    cp -r $distPath/* $warPath/
+                    
+                    # Change to the war directory
+                    cd $warPath
+                    
+                    # Create the WAR file
+                    jar -cvf country-view.war *
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Stop Tomcat
+                    sshCommand remote: [user: "${TOMCAT_USER_USR}", host: "${TOMCAT_HOST}", credentialsId: 'tomcat'], command: "sudo systemctl stop tomcat"
+
+                    // Copy WAR file to Tomcat webapps directory
+                    sshPut remote: [user: "${TOMCAT_USER_USR}", host: "${TOMCAT_HOST}", credentialsId: 'tomcat'], from: "${WAR_PATH}", into: "${TOMCAT_PATH}/country-view.war"
+
+                    // Start Tomcat
+                    sshCommand remote: [user: "${TOMCAT_USER_USR}", host: "${TOMCAT_HOST}", credentialsId: 'tomcat'], command: "sudo systemctl start tomcat"
+                }
+            }
+        }
+
+        stage('Verify JDK Installation') {
+            steps {
+                // Verify if jar command is available
+                sh 'jar --version'
+            }
+        }
+
+        stage('Verify Maven Installation') {
+            steps {
+                // Verify if Maven is available
+                sh 'mvn --version'
+            }
+        }
+    }
+}
