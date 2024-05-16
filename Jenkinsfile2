@@ -7,7 +7,6 @@ pipeline {
     }
 
     environment {
-        TOMCAT_USER = credentials('tomcat')
         TOMCAT_HOST = '20.36.135.22'
         TOMCAT_PATH = '/opt/tomcat/webapps'
         WAR_PATH = 'dist/war/country-view.war'
@@ -16,8 +15,8 @@ pipeline {
         stage('Check JAR Command') {
             steps {
                 // Debug statement to check if the jar command is working
-                sh 'sudo echo "Checking JAR command"'
-                sh 'sudo which jar || echo "jar command not found"'
+                sh 'echo "Checking JAR command"'
+                sh 'which jar || echo "jar command not found"'
                 sh 'sudo jar --version || echo "jar command failed"'
             }
         }
@@ -25,7 +24,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
-                sh 'npm audit fix || exit 0' 
+                sh 'npm audit fix || exit 0'
             }
         }
 
@@ -50,10 +49,10 @@ pipeline {
                     warPath="dist/war"
                     
                     # Ensure the war directory exists
-                    mkdir -p $warPath
+                    sudo mkdir -p $warPath
                     
                     # Copy files from dist/country-view to dist/war
-                    cp -r $distPath/* $warPath/
+                    sudo cp -r $distPath/* $warPath/
                     
                     # Change to the war directory
                     cd $warPath
@@ -68,14 +67,10 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Stop Tomcat
-                    sshCommand remote: [user: "${TOMCAT_USER_USR}", host: "${TOMCAT_HOST}", credentialsId: 'tomcat'], command: "sudo systemctl stop tomcat"
-
-                    // Copy WAR file to Tomcat webapps directory
-                    sshPut remote: [user: "${TOMCAT_USER_USR}", host: "${TOMCAT_HOST}", credentialsId: 'tomcat'], from: "${WAR_PATH}", into: "${TOMCAT_PATH}/country-view.war"
-
-                    // Start Tomcat
-                    sshCommand remote: [user: "${TOMCAT_USER_USR}", host: "${TOMCAT_HOST}", credentialsId: 'tomcat'], command: "sudo systemctl start tomcat"
+                    sshagent(['tomcat']) {
+                        // Copy WAR file to Tomcat webapps directory
+                        sh "scp -o StrictHostKeyChecking=no ${env.WORKSPACE}/${WAR_PATH} root@${TOMCAT_HOST}:${TOMCAT_PATH}/country-view.war"
+                    }
                 }
             }
         }
@@ -83,14 +78,14 @@ pipeline {
         stage('Verify JDK Installation') {
             steps {
                 // Verify if jar command is available
-                sh 'jar --version'
+                sh 'sudo jar --version'
             }
         }
 
         stage('Verify Maven Installation') {
             steps {
                 // Verify if Maven is available
-                sh 'mvn --version'
+                sh 'sudo mvn --version'
             }
         }
     }
